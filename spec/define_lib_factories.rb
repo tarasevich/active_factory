@@ -8,13 +8,9 @@ class ActiveFactory::Define
     text { "TTT#{index}" }
   end
 
-  factory :duplicated_user, :class => User do
+  factory :simple_user, :class => User do
     email "xxx@tut.by"
     password "matz123"
-  end
-
-  factory :duplicated_post, :class => Post do
-    text "TTT"
   end
 
   factory :post_with_after_build, :class => Post do

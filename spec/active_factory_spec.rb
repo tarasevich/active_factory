@@ -14,20 +14,20 @@ describe "models {}" do
     
 # BASIC
 
-  it "creates model :duplicated_post" do
-    models { duplicated_post }
-
-    assert Post.find_by_text "TTT"
-  end
-
-  it "creates model :duplicated_user" do
-    models { duplicated_user }
+  it "creates model 'simple_user'" do
+    models { simple_user }
 
     assert User.find_by_email "xxx@tut.by"
   end
 
-  it "::Define.models[:duplicated_user] is model" do
-    factory = ActiveFactory::Define.factories_hash[:duplicated_user]
+  it "creates model 'user'" do
+    models { user }
+
+    assert User.find_by_email "yyy0@tut.by"
+  end
+
+  it "::Define.models[:simple_user] is model" do
+    factory = ActiveFactory::Define.factories_hash[:simple_user]
 
     assert factory
     factory.model_class.should == User
@@ -37,12 +37,12 @@ describe "models {}" do
 
 # CREATING IN PRODUCE SECTION
 
-  it "defines symbol :duplicated_user for singleton" do
-    models { duplicated_user } #.define_all
+  it "defines symbol :simple_user for singleton" do
+    models { simple_user } #.define_all
 
-    assert_instance_of User, duplicated_user
-    duplicated_user.email.should == "xxx@tut.by"
-    duplicated_user.new_record?.should == false
+    assert_instance_of User, simple_user
+    simple_user.email.should == "xxx@tut.by"
+    simple_user.new_record?.should == false
   end
 
   it "defines symbol :users for collection" do
@@ -94,10 +94,10 @@ describe "models {}" do
 
 # HASHES IN PRODUCE SECTION
 
-  it "defines symbol :duplicated_post_ for hash" do
-    models { duplicated_post } #.define_all
+  it "defines user_ for hash" do
+    models { user } #.define_all
 
-    duplicated_post_.should == {:text => "TTT"}
+    user_.should == {:email => "yyy0@tut.by", :password => "matz00" }
   end
 
   it "declares hash without creating" do
@@ -117,19 +117,19 @@ describe "models {}" do
 # LINKING
   
   it "associates through belongs_to" do
-    models { duplicated_post - duplicated_user }
+    models { post - simple_user }
 
-    Post.find_by_text("TTT").user.should == User.find_by_email("xxx@tut.by")
+    Post.find_by_text("TTT0").user.should == User.find_by_email("xxx@tut.by")
   end
 
   it "associates through has_many" do
-    models { duplicated_user - duplicated_post }
+    models { simple_user - post }
 
-    Post.find_by_text("TTT").user.should == User.find_by_email("xxx@tut.by")
+    Post.find_by_text("TTT0").user.should == User.find_by_email("xxx@tut.by")
   end
 
   it "associates single model and collection" do
-    models { duplicated_user - posts(2) }
+    models { simple_user - posts(2) }
 
     user = User.find_by_email "xxx@tut.by"
     assert user
@@ -190,23 +190,23 @@ describe "models {}" do
   end  
 
   it "syntax sugar to merge" do
-    models { duplicated_user_ }
+    models { user_ }
 
-    duplicated_user_(:text => "new@email.com").should == duplicated_user_.merge(:text => "new@email.com")
+    user_(:text => "new@email.com").should == user_.merge(:text => "new@email.com")
   end
 
   it "syntax sugar for update_attribute" do
-    models { duplicated_user(:email => "modified@email.com") }
+    models { simple_user(:email => "modified@email.com") }
 
-    duplicated_user.email.should == "modified@email.com"
+    simple_user.email.should == "modified@email.com"
   end
 
   it "syntax sugar for update_attribute for multiple instances" do
-    models { duplicated_users({:email => "1st@email.com"}, {:email => "2nd@email.com"})}
+    models { simple_users({:email => "1st@email.com"}, {:email => "2nd@email.com"})}
 
-    duplicated_users.size.should == 2
-    duplicated_users[0].email.should == "1st@email.com"
-    duplicated_users[1].email.should == "2nd@email.com"
+    simple_users.size.should == 2
+    simple_users[0].email.should == "1st@email.com"
+    simple_users[1].email.should == "2nd@email.com"
   end
 
 # MORE
@@ -214,10 +214,10 @@ describe "models {}" do
   it "leaves no coincidental methods in following specs" do
     models { post_overrides_method }
 
-    assert_raise(NameError) { duplicated_user }
-    assert_raise(NameError) { duplicated_user_ }
-    assert_raise(NameError) { duplicated_users }
-    assert_raise(NameError) { duplicated_users_ }
+    assert_raise(NameError) { simple_user }
+    assert_raise(NameError) { simple_user_ }
+    assert_raise(NameError) { simple_users }
+    assert_raise(NameError) { simple_users_ }
     assert_raise(NameError) { post }
   end
 
