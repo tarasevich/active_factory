@@ -1,0 +1,86 @@
+== ActiveFactory
+
+<em>A fixture replacement library. With it your specs will become more declarative, uniform and terse.</em>
+*feedback will be highly appreciated*
+
+ - Google group[http://groups.google.com/group/active_factory]
+
+== Introduction
+
+ActiveFactory allows you declaratively define
+which objects you want to have in a database for your spec.
+You can also define associations between the objects and
+redefine default values.
+Additionally ActiveFactory automatically defines accessor methods for the objects.
+The scope of the methods is limited to current spec. So they will not affect you other specs.
+
+  it "Task.incomplete returns only incomplete tasks" do
+    models { project - tasks({:complete => 0}, {:complete => 1}) }
+
+    project.tasks.incomplete.should == [tasks[0]]
+  end
+
+  it "project displays incomplete tasks" do
+    models { my - project - task(:complete => 0) }
+
+    visit project_path(project)
+
+    page.should have_content task.title
+  end
+
+These specs require the following configuration:
+
+  class ActiveFactory::Define
+
+    factory :my, :class => User do
+      username "my_name"
+      password "my_password"
+
+      after_build {
+        object.save!
+        emulate_sign_in object
+      }
+    end
+
+    factory :project do
+      title { "Project#{index} title" }
+    end
+
+    factory :task do
+      title { "Task#{index} title" }
+    end
+  end
+
+In the configuration you specify default attribute values for an object,
+and in a specific test you may reassign the values for the needs of the test.
+Optional block after_build specifies actions that should be done
+after object was initialized but before saving it.
+If you want to create by the same factory several objects with different values,
+you may use blocks.
+Method index in those blocks returns index of the object being created.
+
+== Installation
+
+ActiveFactory requires Rails 3 and RSpec 2.
+
+   rails plugin install git@github.com:tarasevich/active_factory.git
+
+Then create file spec/support/define_factories.rb with content:
+
+  require 'active_factory'
+  RSpec::configure do |c|
+    c.include ActiveFactory::API, :type => :controller
+    c.include ActiveFactory::API, :type => :model
+    c.include ActiveFactory::API, :type => :request
+  end
+
+  class ActiveFactory::Define
+    factory :some_factory, :class => YourModelClass do
+      some_attribute { "some value" }
+    end
+  end
+
+Now you can add you factories in ActiveFactory::Define class
+and use models {} block in your specs.
+
+_Copyright (c) 2010-2011 Alexey Tarasevich, released under the MIT license_
