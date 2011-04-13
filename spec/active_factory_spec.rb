@@ -23,7 +23,7 @@ describe "models {}" do
   it "creates model 'user'" do
     models { user }
 
-    assert User.find_by_email "yyy0@tut.by"
+    assert User.find_by_email "user0@tut.by"
   end
 
   it "::Define.models[:simple_user] is model" do
@@ -48,24 +48,24 @@ describe "models {}" do
   it "defines symbol :users for collection" do
     models { users(1) } #.define_all
 
-    users[0].email.should == "yyy0@tut.by"
-    users_[0].email.should == "yyy0@tut.by"
+    users[0].email.should == "user0@tut.by"
+    users_[0].email.should == "user0@tut.by"
     users[0].new_record?.should == false
   end
 
   it "creates collection" do
     models { users(2) }
 
-    assert User.find_by_email("yyy0@tut.by")
-    assert User.find_by_email("yyy1@tut.by")
-    User.find_by_email("yyy2@tut.by").should == nil
+    assert User.find_by_email("user0@tut.by")
+    assert User.find_by_email("user1@tut.by")
+    User.find_by_email("user2@tut.by").should == nil
   end
 
   it "creates twice for s() syntax" do
     models { users(1); users(1) }
 
-    assert User.find_by_email "yyy0@tut.by"
-    assert User.find_by_email "yyy1@tut.by"
+    assert User.find_by_email "user0@tut.by"
+    assert User.find_by_email "user1@tut.by"
   end
 
   it "allows to refer to all entities in models{} block" do
@@ -75,15 +75,15 @@ describe "models {}" do
   it "plural s() syntax creates additional instance" do
     models { user; users(1) }
 
-    assert User.find_by_email "yyy0@tut.by"
-    assert User.find_by_email "yyy1@tut.by"
+    assert User.find_by_email "user0@tut.by"
+    assert User.find_by_email "user1@tut.by"
   end
 
   it "creates once for s() + singleton" do
     models { users(1); user }
 
-    assert User.find_by_email "yyy0@tut.by"
-    User.find_by_email("yyy1@tut.by").should == nil
+    assert User.find_by_email "user0@tut.by"
+    User.find_by_email("user1@tut.by").should == nil
   end
 
   it "fails with singleton for multiple" do
@@ -97,7 +97,7 @@ describe "models {}" do
   it "defines user_ for hash" do
     models { user } #.define_all
 
-    user_.should == {:email => "yyy0@tut.by", :password => "matz00" }
+    user_.should == {:email => "user0@tut.by", :password => "password00" }
   end
 
   it "declares hash without creating" do
@@ -119,19 +119,19 @@ describe "models {}" do
   it "associates through belongs_to" do
     models { post - simple_user }
 
-    Post.find_by_text("TTT0").user.should == User.find_by_email("xxx@tut.by")
+    Post.find_by_text("TTT0").user.should == User.find_by_email("simple_user@gmail.com")
   end
 
   it "associates through has_many" do
     models { simple_user - post }
 
-    Post.find_by_text("TTT0").user.should == User.find_by_email("xxx@tut.by")
+    Post.find_by_text("TTT0").user.should == User.find_by_email("simple_user@gmail.com")
   end
 
   it "associates single model and collection" do
     models { simple_user - posts(2) }
 
-    user = User.find_by_email "xxx@tut.by"
+    user = User.find_by_email "simple_user@gmail.com"
     assert user
     user.posts.to_a.should == 2.times.map { |n| Post.find_by_text "TTT#{n}" }
   end
@@ -142,7 +142,7 @@ describe "models {}" do
     posts = 3.times.map { |n| Post.find_by_text("TTT#{n}") }
 
     1.times { |n|
-      user = User.find_by_email("yyy#{n}@tut.by")
+      user = User.find_by_email("user#{n}@tut.by")
       assert user
       user.posts.all.should == posts
     }
