@@ -65,23 +65,9 @@ Method index in those blocks returns index of the object being created.
 ActiveFactory requires Rails 3 and RSpec 2.
 
    rails plugin install git@github.com:tarasevich/active_factory.git
+   rails g active_factory:install
 
-Then create file spec/support/define_factories.rb with content:
-
-  require 'active_factory'
-  RSpec::configure do |c|
-    c.include ActiveFactory::API, :type => :controller
-    c.include ActiveFactory::API, :type => :model
-    c.include ActiveFactory::API, :type => :request
-  end
-
-  class ActiveFactory::Define
-    factory :some_factory, :class => YourModelClass do
-      some_attribute { "some value" }
-    end
-  end
-
-Now you can add you factories in ActiveFactory::Define class
+Now you are ready to add you factories spec/define_factories.rb
 and use models {} block in your specs.
 
 <em>Copyright (c) 2010-2011 Alexey Tarasevich, released under the MIT license</em>
