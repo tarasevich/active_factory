@@ -5,7 +5,7 @@ class ActiveFactory::Define
   end
 
   factory :post do
-    text { "TTT#{index}" }
+    text { "Content #{index}" }
   end
 
   factory :simple_user, :class => User do
@@ -15,7 +15,7 @@ class ActiveFactory::Define
 
   factory :post_with_after_build, :class => Post do
     text "YYY"
-    after_build { object.text = "ZZZ" }
+    after_build { object.text = "After Build" }
   end
 
   factory :post_overrides_method, :class => Post do

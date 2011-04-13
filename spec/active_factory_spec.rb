@@ -12,40 +12,40 @@ describe "models {}" do
     empty_database!
   end
     
-# BASIC
+# CREATING IN PRODUCE SECTION
 
-  it "creates model 'simple_user'" do
+  it "creates singleton model 'simple_user'" do
     models { simple_user }
 
-    assert User.find_by_email "xxx@tut.by"
+    simple_user.email.should == "simple_user@gmail.com"
+    simple_user.password.should == "simple_password"
+    simple_user.should be_an_instance_of User
+    simple_user.new_record?.should == false
+    User.all.should == [simple_user]
+    respond_to?(:simple_user).should == true
+    respond_to?(:user).should == false
   end
 
-  it "creates model 'user'" do
+  it "creates singleton model 'user' with index and implicit class" do
     models { user }
 
-    assert User.find_by_email "user0@tut.by"
+    user.email.should == "user0@tut.by"
+    user.password.should == "password00"
+    user.should be_an_instance_of User
+    user.new_record?.should == false
+    User.all.should == [user]
+    respond_to?(:user).should == true
+    respond_to?(:simple_user).should == false
   end
 
-  it "::Define.models[:simple_user] is model" do
-    factory = ActiveFactory::Define.factories_hash[:simple_user]
+  it "::Define.models[:user] is model" do
+    factory = ActiveFactory::Define.factories_hash[:user]
 
     assert factory
     factory.model_class.should == User
-    factory.attribute_expressions[:email].call.should == "xxx@tut.by"
-    User.create! factory.attributes_for(0)
   end
 
-# CREATING IN PRODUCE SECTION
-
-  it "defines symbol :simple_user for singleton" do
-    models { simple_user } #.define_all
-
-    assert_instance_of User, simple_user
-    simple_user.email.should == "xxx@tut.by"
-    simple_user.new_record?.should == false
-  end
-
-  it "defines symbol :users for collection" do
+  it "defines symbol 'users' for collection" do
     models { users(1) } #.define_all
 
     users[0].email.should == "user0@tut.by"
@@ -103,15 +103,15 @@ describe "models {}" do
   it "declares hash without creating" do
     models { post_ }
 
-    post_.text.should == "TTT0"
-    Post.find_by_text("TTT0").should == nil
+    post_.text.should == "Content 0"
+    Post.find_by_text("Content 0").should == nil
   end
 
   it "declares many hashes without creating" do
     models { posts_(2) }
 
-    posts_[1].text.should == "TTT1"
-    Post.find_by_text("TTT1").should == nil
+    posts_[1].text.should == "Content 1"
+    Post.find_by_text("Content 1").should == nil
   end
 
 # LINKING
@@ -119,13 +119,13 @@ describe "models {}" do
   it "associates through belongs_to" do
     models { post - simple_user }
 
-    Post.find_by_text("TTT0").user.should == User.find_by_email("simple_user@gmail.com")
+    Post.find_by_text("Content 0").user.should == User.find_by_email("simple_user@gmail.com")
   end
 
   it "associates through has_many" do
     models { simple_user - post }
 
-    Post.find_by_text("TTT0").user.should == User.find_by_email("simple_user@gmail.com")
+    Post.find_by_text("Content 0").user.should == User.find_by_email("simple_user@gmail.com")
   end
 
   it "associates single model and collection" do
@@ -133,13 +133,13 @@ describe "models {}" do
 
     user = User.find_by_email "simple_user@gmail.com"
     assert user
-    user.posts.to_a.should == 2.times.map { |n| Post.find_by_text "TTT#{n}" }
+    user.posts.to_a.should == 2.times.map { |n| Post.find_by_text "Content #{n}" }
   end
 
   it "associates collections" do
     models { posts(3) - users(1) }
 
-    posts = 3.times.map { |n| Post.find_by_text("TTT#{n}") }
+    posts = 3.times.map { |n| Post.find_by_text("Content #{n}") }
 
     1.times { |n|
       user = User.find_by_email("user#{n}@tut.by")
@@ -180,7 +180,7 @@ describe "models {}" do
   it "invokes after_create" do
     models { post_with_after_build } #.define_all
 
-    post_with_after_build.text.should == "ZZZ"
+    post_with_after_build.text.should == "After Build"
   end
 
   it "provides methods for hash keys" do
@@ -228,7 +228,7 @@ describe "models {}" do
   end
 
   it "#factory_attributes returns attributes" do
-    assert_equal({:text => "TTT1"}, self.class.class_eval { factory_attributes(:post, 1) })
+    assert_equal({:text => "Content 1"}, self.class.class_eval { factory_attributes(:post, 1) })
   end
 
 end
