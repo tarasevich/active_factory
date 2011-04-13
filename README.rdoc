@@ -1,9 +1,9 @@
 == ActiveFactory
 
 <em>A fixture replacement library. With it your specs will become more declarative, uniform and terse.</em>
-*feedback will be highly appreciated*
+<b>feedback will be highly appreciated</b>
 
- - Google group[http://groups.google.com/group/active_factory]
+* Google group[http://groups.google.com/group/active_factory]
 
 == Introduction
 
@@ -83,4 +83,4 @@ Then create file spec/support/define_factories.rb with content:
 Now you can add you factories in ActiveFactory::Define class
 and use models {} block in your specs.
 
-_Copyright (c) 2010-2011 Alexey Tarasevich, released under the MIT license_
+<em>Copyright (c) 2010-2011 Alexey Tarasevich, released under the MIT license</em>
