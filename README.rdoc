@@ -1,9 +1,10 @@
 == ActiveFactory
 
 <em>A fixture replacement library. With it your specs will become more declarative, uniform and terse.</em>
-<b>feedback will be highly appreciated</b>
 
-* Google group[http://groups.google.com/group/active_factory]
+<b>Feedback will be highly appreciated</b>
+
+* {Google group}[http://groups.google.com/group/active_factory]
 
 == Introduction
 
