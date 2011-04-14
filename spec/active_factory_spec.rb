@@ -3,7 +3,7 @@ require 'active_factory'
 require "#{File.dirname(__FILE__)}/spec_helper"
 require "#{File.dirname(__FILE__)}/define_lib_factories"
 
-describe "models {}" do
+describe "ActiveFactory" do
   include ActiveFactory::API
   include Test::Unit::Assertions
   include ActiveRecordEnvironment
@@ -11,19 +11,41 @@ describe "models {}" do
   before(:each) do
     empty_database!
   end
-    
-# CREATING IN PRODUCE SECTION
 
-  it "creates singleton model 'simple_user'" do
+# INTRODUCING METHODS
+
+  it "defines methods to access singleton object, singleton hash, collection and collection of hashes" do
+    models { user }
+
+    respond_to?(:user).should == true
+    respond_to?(:user_).should == true
+    respond_to?(:users).should == true
+    respond_to?(:users_).should == true
+
+    respond_to?(:post).should == false
+    respond_to?(:post_).should == false
+    respond_to?(:posts).should == false
+    respond_to?(:posts_).should == false
+  end
+
+  it "vice versa" do
+    models { post }
+
+    respond_to?(:post).should == true
+    respond_to?(:user).should == false
+  end
+
+# CREATING IN MODELS SECTION
+
+  it "creates singleton model without blocks and with explicit class" do
     models { simple_user }
 
     simple_user.email.should == "simple_user@gmail.com"
     simple_user.password.should == "simple_password"
     simple_user.should be_an_instance_of User
-    simple_user.new_record?.should == false
+    simple_user.should_not be_new_record
+
     User.all.should == [simple_user]
-    respond_to?(:simple_user).should == true
-    respond_to?(:user).should == false
   end
 
   it "creates singleton model 'user' with index and implicit class" do
@@ -31,62 +53,58 @@ describe "models {}" do
 
     user.email.should == "user0@tut.by"
     user.password.should == "password00"
+
     user.should be_an_instance_of User
-    user.new_record?.should == false
+    user.should_not be_new_record
+
     User.all.should == [user]
-    respond_to?(:user).should == true
-    respond_to?(:simple_user).should == false
   end
 
-  it "::Define.models[:user] is model" do
-    factory = ActiveFactory::Define.factories_hash[:user]
-
-    assert factory
-    factory.model_class.should == User
-  end
-
-  it "defines symbol 'users' for collection" do
-    models { users(1) } #.define_all
-
-    users[0].email.should == "user0@tut.by"
-    users_[0].email.should == "user0@tut.by"
-    users[0].new_record?.should == false
-  end
-
-  it "creates collection" do
+  it "creates a collection" do
     models { users(2) }
 
-    assert User.find_by_email("user0@tut.by")
-    assert User.find_by_email("user1@tut.by")
-    User.find_by_email("user2@tut.by").should == nil
+    users[0].email.should == "user0@tut.by"
+    users[1].email.should == "user1@tut.by"
+    users[1].password.should == "password11"
+
+    users.size.should == 2
+    User.all.should == users
   end
 
-  it "creates twice for s() syntax" do
-    models { users(1); users(1) }
+  it "collection(i) adds specified number of new instances to a collection" do
+    models { users(1); users(2) }
 
-    assert User.find_by_email "user0@tut.by"
-    assert User.find_by_email "user1@tut.by"
+    users[0].email.should == "user0@tut.by"
+    users[1].email.should == "user1@tut.by"
+    users[2].email.should == "user2@tut.by"
+
+    users.size.should == 3
+    User.all.should == users
   end
 
-  it "allows to refer to all entities in models{} block" do
+  it "collection() syntax allows to refer to all entities created by a factory" do
     models { users }
+
+    users.size.should == 0
   end
   
-  it "plural s() syntax creates additional instance" do
+  it "collection(1) syntax creates additional instance" do
     models { user; users(1) }
 
-    assert User.find_by_email "user0@tut.by"
-    assert User.find_by_email "user1@tut.by"
+    users[0].email.should == "user0@tut.by"
+    users[1].email.should == "user1@tut.by"
+
+    users.size.should == 2
   end
 
-  it "creates once for s() + singleton" do
+  it "collection(1) syntax + singleton syntax" do
     models { users(1); user }
 
     assert User.find_by_email "user0@tut.by"
     User.find_by_email("user1@tut.by").should == nil
   end
 
-  it "fails with singleton for multiple" do
+  it "cannot use singleton syntax when many instances are created" do
     assert_raise RuntimeError do
       models { users(2); user }
     end
@@ -94,46 +112,72 @@ describe "models {}" do
 
 # HASHES IN PRODUCE SECTION
 
-  it "defines user_ for hash" do
+  it "singleton syntax defines 'user_' method to access a hash" do
     models { user } #.define_all
 
     user_.should == {:email => "user0@tut.by", :password => "password00" }
+    user.should be_an_instance_of User
   end
 
-  it "declares hash without creating" do
-    models { post_ }
+  it "declares hash without creating an object" do
+    models { user_ }
 
-    post_.text.should == "Content 0"
-    Post.find_by_text("Content 0").should == nil
+    user_.should == {:email => "user0@tut.by", :password => "password00" }
+    user.should == nil
+
+    User.all.should == []
+  end
+
+  it "defines symbols 'users' and 'users_' for a collection" do
+    models { users(1) } #.define_all
+
+    users[0].email.should == "user0@tut.by"
+    users_[0].email.should == "user0@tut.by"
+    users[0].new_record?.should == false
+
+    users.size.should == 1
+    User.all.should == users
   end
 
   it "declares many hashes without creating" do
     models { posts_(2) }
 
+    posts_[0].text.should == "Content 0"
     posts_[1].text.should == "Content 1"
-    Post.find_by_text("Content 1").should == nil
+
+    Post.all.should == []
   end
 
 # LINKING
   
   it "associates through belongs_to" do
-    models { post - simple_user }
+    models { post - user }
 
-    Post.find_by_text("Content 0").user.should == User.find_by_email("simple_user@gmail.com")
+    post.user.should == user
+    user.posts.should == post
+
+    Post.all.should == [post]
+    Post.all.map(&:user).should == [user]
   end
 
   it "associates through has_many" do
-    models { simple_user - post }
+    models { user - post }
 
-    Post.find_by_text("Content 0").user.should == User.find_by_email("simple_user@gmail.com")
+    post.user.should == user
+    user.posts.should == post
+
+    User.all.should == [user]
+    User.all.map(&:posts).should == [[post]]
   end
 
-  it "associates single model and collection" do
-    models { simple_user - posts(2) }
+  it "associates singleton and collection" do
+    models { user - posts(2) }
 
-    user = User.find_by_email "simple_user@gmail.com"
-    assert user
-    user.posts.to_a.should == 2.times.map { |n| Post.find_by_text "Content #{n}" }
+    user.posts.should == posts
+    posts.map(&:user).should == [user, user]
+
+    User.all.should == [user]
+    User.all.map(&:posts).should == [posts]
   end
 
   it "associates collections" do
@@ -186,7 +230,7 @@ describe "models {}" do
   it "provides methods for hash keys" do
     models { post_with_after_builds(1) }
 
-    post_with_after_builds_[0].text.should == "YYY"
+    post_with_after_builds_[0].text.should == "Post with after_build"
   end  
 
   it "syntax sugar to merge" do
@@ -231,4 +275,10 @@ describe "models {}" do
     assert_equal({:text => "Content 1"}, self.class.class_eval { factory_attributes(:post, 1) })
   end
 
+  it "::Define.models[:user] is model" do
+    factory = ActiveFactory::Define.factories_hash[:user]
+
+    assert factory
+    factory.model_class.should == User
+  end
 end

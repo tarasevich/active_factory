@@ -1,10 +1,10 @@
 class ActiveFactory::Define
-  factory :user, :class => User do
+  factory :user do
     email { "user#{i}@tut.by" }
     password { "password#{i}#{i}" }
   end
 
-  factory :post do
+  factory :post, :class => Post do
     text { "Content #{index}" }
   end
 
@@ -14,12 +14,12 @@ class ActiveFactory::Define
   end
 
   factory :post_with_after_build, :class => Post do
-    text "YYY"
+    text "Post with after_build"
     after_build { object.text = "After Build" }
   end
 
   factory :post_overrides_method, :class => Post do
-    text "XXX"
+    text "Post overrides a method"
   end
 
   factory :follower, :class => User do
