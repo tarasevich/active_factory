@@ -24,8 +24,10 @@ end
 
 class User < ActiveRecord::Base
   has_many :posts
-  has_and_belongs_to_many :followers, :class_name => 'User', :foreign_key => 'following_id', :join_table => 'following'
-  has_and_belongs_to_many :following, :class_name => 'User', :foreign_key => 'follower_id', :join_table => 'following'
+  has_and_belongs_to_many :followers, :class_name => 'User', :join_table => 'following',
+    :foreign_key => 'following_id', :association_foreign_key => 'follower_id'
+  has_and_belongs_to_many :following, :class_name => 'User', :join_table => 'following',
+    :foreign_key => 'follower_id', :association_foreign_key => 'following_id'
   attr_accessor :password
 end
 

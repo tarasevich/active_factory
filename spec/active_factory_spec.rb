@@ -14,7 +14,20 @@ describe "ActiveFactory" do
 
 # INTRODUCING METHODS
 
-  it "defines methods to access singleton object, singleton hash, collection and collection of hashes" do
+  it "defines methods in models{} section to declare a singleton object and hash, collection of objects and hashes" do
+    models {
+      respond_to?(:user).should == true
+      respond_to?(:user_).should == true
+      respond_to?(:users).should == true
+      respond_to?(:users_).should == true
+
+      respond_to?(:simple_user).should == true
+      respond_to?(:follower).should == true
+      respond_to?(:post).should == true
+    }
+  end
+
+  it "defines methods in the current spec context to access a singleton object, a singleton hash, a collection and a collection of hashes" do
     models { user }
 
     respond_to?(:user).should == true
@@ -154,7 +167,7 @@ describe "ActiveFactory" do
     models { post - user }
 
     post.user.should == user
-    user.posts.should == post
+    user.posts.should == [post]
 
     Post.all.should == [post]
     Post.all.map(&:user).should == [user]
@@ -164,7 +177,7 @@ describe "ActiveFactory" do
     models { user - post }
 
     post.user.should == user
-    user.posts.should == post
+    user.posts.should == [post]
 
     User.all.should == [user]
     User.all.map(&:posts).should == [[post]]
@@ -177,19 +190,15 @@ describe "ActiveFactory" do
     posts.map(&:user).should == [user, user]
 
     User.all.should == [user]
-    User.all.map(&:posts).should == [posts]
+    User.all.map(&:posts).should =~ [posts]
   end
 
   it "associates collections" do
     models { posts(3) - users(1) }
 
-    posts = 3.times.map { |n| Post.find_by_text("Content #{n}") }
+    _posts = 3.times.map { |n| Post.find_by_text("Content #{n}") }
 
-    1.times { |n|
-      user = User.find_by_email("user#{n}@tut.by")
-      assert user
-      user.posts.all.should == posts
-    }
+    user.posts.all.should == _posts
   end
 
   it "zips links" do
@@ -198,33 +207,44 @@ describe "ActiveFactory" do
     2.times { |i|
       posts[i].user_id.should == users[i].id
     }
+
+    Post.all.should =~ posts
+    Post.all.map(&:user).should =~ users
   end
 
   it "it associates only specified number of posts, not all" do
-    models { posts(1); posts(1) - user } #.define_all
+    models { posts(1); posts(1) - user }
 
-    assert posts[1].user
     posts[0].user.should == nil
+    posts[1].user.should == user
+
+    Post.all.map(&:user).should =~ [nil, user]
   end
 
 # ADVANCED FACTORY OPTIONS
 
-  it "uses prefer_associations option" do
+  it "uses prefer_associations option to disambiguate associations (followers & following)" do
     models { follower - user }
     
     follower.following.should == [user]
+    follower.followers.should == []
+
+    User.all.should =~ [follower, user]
   end
 
   it "allows to redefine prefer_associations" do
     models { follower - :followers - user }
 
     follower.followers.should == [user]
+    follower.following.should == []
+
+    User.all.should =~ [follower, user]
   end
   
-  it "invokes after_create" do
-    models { post_with_after_build } #.define_all
+  it "invokes after_build" do
+    models { post_with_after_build }
 
-    post_with_after_build.text.should == "After Build"
+    post_with_after_build.text.should == "After Build 0"
   end
 
   it "provides methods for hash keys" do

@@ -15,7 +15,7 @@ class ActiveFactory::Define
 
   factory :post_with_after_build, :class => Post do
     text "Post with after_build"
-    after_build { object.text = "After Build" }
+    after_build { object.text = "After Build #{i}" }
   end
 
   factory :post_overrides_method, :class => Post do

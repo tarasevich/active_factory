@@ -59,8 +59,8 @@ describe ActiveFactory::Define do
           {:text => "Post with after_build"}
 
       post = mock "Post"
-      post.should_receive(:text=).with("After Build").and_return(nil)
-      factory.apply_after_build nil, nil, post
+      post.should_receive(:text=).with("After Build 0").and_return(nil)
+      factory.apply_after_build 0, nil, post
     end
 
     it "with preferred associations" do
