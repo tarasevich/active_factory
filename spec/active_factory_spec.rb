@@ -95,7 +95,7 @@ describe "ActiveFactory" do
     User.all.should == users
   end
 
-  it "collection() syntax allows to refer to all entities created by a factory" do
+  it "collection() syntax allows to refer to all entities already created by a factory" do
     models { users }
 
     users.size.should == 0
@@ -110,11 +110,12 @@ describe "ActiveFactory" do
     users.size.should == 2
   end
 
-  it "collection(1) syntax + singleton syntax" do
+  it "singleton syntax does not create additional instances, if it already exist" do
     models { users(1); user }
 
-    assert User.find_by_email "user0@tut.by"
-    User.find_by_email("user1@tut.by").should == nil
+    users.size.should == 1
+
+    User.all.should == users
   end
 
   it "cannot use singleton syntax when many instances are created" do
@@ -146,7 +147,7 @@ describe "ActiveFactory" do
 
     users[0].email.should == "user0@tut.by"
     users_[0].email.should == "user0@tut.by"
-    users[0].new_record?.should == false
+    users[0].should_not be_new_record
 
     users.size.should == 1
     User.all.should == users
@@ -159,6 +160,14 @@ describe "ActiveFactory" do
     posts_[1].text.should == "Content 1"
 
     Post.all.should == []
+  end
+
+  it "" do
+    models { users(1) ; users_(1); users(1) }
+
+    users[0].should be_an_instance_of User
+    users[1].should be_an_instance_of NilClass
+    users[2].should be_an_instance_of User
   end
 
 # LINKING

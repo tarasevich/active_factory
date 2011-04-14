@@ -1,4 +1,6 @@
 class ActiveFactory::Define
+  # model class will be inferred from factory name: User
+  # i - refers to an index of the instance
   factory :user do
     email { "user#{i}@tut.by" }
     password { "password#{i}#{i}" }
