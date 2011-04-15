@@ -300,7 +300,18 @@ describe "ActiveFactory" do
     post_overrides_method_.should == "invoke function"
   end
 
+  def some_method
+    :some_outer_method_result
+  end
+
+  it "outer methods are accessible in models {} section" do
+    should_receive(:some_method).with(:some_arg, 1).and_return(:some_result)
+
+    models { some_method(:some_arg, 1).should == :some_result }
+  end
+
   it "#factory_attributes returns attributes" do
+
     assert_equal({:text => "Content 1"}, self.class.class_eval { factory_attributes(:post, 1) })
   end
 
