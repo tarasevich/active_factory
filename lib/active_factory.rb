@@ -84,6 +84,9 @@ module ActiveFactory
   end
 
   # defines methods that can be used in a model definition
+  # object - the object under construction
+  # index - index of the object in the factory
+  # context - spec context where the models {} block was evaluated
   class CreationContext < Struct.new :index, :context, :object
     alias i index
   end

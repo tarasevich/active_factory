@@ -39,16 +39,17 @@ These specs require the following configuration:
 
       after_build {
         object.save!
-        emulate_sign_in object
+        context.emulate_sign_in object
       }
     end
 
     factory :project do
-      title { "Project#{index} title" }
+      title { "Project #{index} title" }
+      due { Time.now }
     end
 
     factory :task do
-      title { "Task#{index} title" }
+      title { "Task #{index} title" }
     end
   end
 
@@ -71,3 +72,40 @@ Now you are ready to add you factories spec/define_factories.rb
 and use models {} block in your specs.
 
 <em>Copyright (c) 2010-2011 Alexey Tarasevich, released under the MIT license</em>
+
+== Some Examples
+
+Consider we have factory declarations from introduction secion.
+
+  describe ProjectController do
+
+    it "creates a new project" do
+      models { my ; project_ }
+
+      post :create, :project => project_
+
+      Project.all.map(&:title).should == [project_[:title]]
+    end
+  ...
+
+In previous example factory +my+ in +models+ block causes to emulate login.
++project_+ declares corresponding method inside the spec.
+Syntax with uderscore indicates that it's should be just hash
+with values taken from the factory declaration.
+In our case it will be <code>{:title => "Project 0 title"}</code>
+
+    it "modifies a project's title" do
+      models { my - project }
+
+      put :update, :id => project.id, :project => project_(:title => "New Title")
+
+      project.reload.title.should == "New Title"
+    end
+
+In this example we again use +my+ to create a user and log in with it.
+Additionally we create +Project+ instance using +project+ factory
+and define method +project+ locally for the spec.
+Finally we use minus sign to create association between user +my+ and +project+.
+Active factory iterates through associations of +User+ model and chooses the one that
+has +Project+ on the other side.
+<code>project_(h)</code> is just syntax sugar for <code>project_.merge(h)</code>
