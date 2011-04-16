@@ -37,7 +37,7 @@ These specs require the following configuration:
       username "my_name"
       password "my_password"
 
-      after_build {
+      before_save {
         object.save!
         context.emulate_sign_in object
       }
