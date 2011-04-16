@@ -63,6 +63,19 @@ describe ActiveFactory::Define do
       factory.apply_after_build 0, nil, post
     end
 
+    it "with before_save block" do
+      factory = get_factory :post_with_before_save
+      factory.model_class.should == Post
+      factory.before_save.should be_an_instance_of Proc
+      factory.prefer_associations.should == nil
+      factory.attributes_for(0).should ==
+          {:text => "Post with before_save"}
+
+      post = mock "Post"
+      post.should_receive(:text=).with("Before Save 0").and_return(nil)
+      factory.apply_before_save 0, nil, post
+    end
+
     it "with preferred associations" do
       factory = get_factory :follower
       factory.prefer_associations.should == [:following]

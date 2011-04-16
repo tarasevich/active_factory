@@ -20,6 +20,11 @@ class ActiveFactory::Define
     after_build { model.text = "After Build #{i}" }
   end
 
+  factory :post_with_before_save, :class => Post do
+    text "Post with before_save"
+    before_save { model.text = "Before Save #{i}" }
+  end
+
   factory :post_overrides_method, :class => Post do
     text "Post overrides a method"
   end

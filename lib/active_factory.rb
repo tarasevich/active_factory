@@ -37,6 +37,7 @@ module ActiveFactory
         self._active_factory_context_extension = ContextExtension.new
 
         linking_context.instance_eval &define_graph
+        containers_hash.values.each &:before_save
         containers_hash.values.each &:save
         _active_factory_context_extension.extend_test_context containers_hash, context
         nil
@@ -57,6 +58,10 @@ module ActiveFactory
       @after_build = callback
     end
 
+    def before_save &callback
+      @before_save = callback
+    end
+
     def method_missing method, *args, &expression
       if args.many? or args.any? and block_given?
         raise "should be either block or value: #{method} #{args.inspect[1..-2]}"
@@ -74,7 +79,8 @@ module ActiveFactory
 
       @@factories[name] = FactoryDSL.new.instance_eval {
         instance_eval(&block)
-        Factory.new name, model_class, @prefer_associations, @attribute_expressions, @after_build
+        Factory.new name, model_class,
+          @prefer_associations, @attribute_expressions, @after_build, @before_save
       }
     end
 
@@ -92,8 +98,8 @@ module ActiveFactory
   end
 
   # creates instances of the given model class
-  class Factory < Struct.new :name, :model_class, :prefer_associations,
-                             :attribute_expressions, :after_build
+  class Factory < Struct.new :name, :model_class,
+                             :prefer_associations, :attribute_expressions, :after_build, :before_save
     def attributes_for index
       context = CreationContext.new(index)
       attrs = attribute_expressions.map { |a, e| [a, context.instance_eval(&e)] }
@@ -104,6 +110,13 @@ module ActiveFactory
       if after_build
         CreationContext.new(index, context, model).
             instance_eval(&after_build)
+      end
+    end
+
+    def apply_before_save index, context, model
+      if before_save
+        CreationContext.new(index, context, model).
+            instance_eval(&before_save)
       end
     end
   end
@@ -127,6 +140,12 @@ module ActiveFactory
         @attrs.each_pair { |k,v| @model.send "#{k}=", v }
 
         @metadata.apply_after_build @index, context, @model
+      end
+    end
+
+    def before_save context
+      if @model and not @saved
+        @metadata.apply_before_save @index, context, @model
       end
     end
 
@@ -179,6 +198,10 @@ module ActiveFactory
 
     def make_linker
       Linker.new self
+    end
+
+    def before_save
+      @entries.each { |entry| entry.before_save @outer_context }
     end
 
     def save
