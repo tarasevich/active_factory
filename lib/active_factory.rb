@@ -124,28 +124,29 @@ module ActiveFactory
   class ContainerEntry
     attr_reader :model, :attrs
 
-    def initialize index, metadata
+    def initialize index, factory, context
       @index = index
-      @metadata = metadata
-      @attrs = HashStruct[metadata.attributes_for(index)]
+      @factory = factory
+      @attrs = HashStruct[factory.attributes_for(index)]
+      @context = context
     end
 
     def merge hash
       @attrs = @attrs.merge hash
     end
 
-    def build context
+    def build
       unless @model
-        @model = @metadata.model_class.new
+        @model = @factory.model_class.new
         @attrs.each_pair { |k,v| @model.send "#{k}=", v }
 
-        @metadata.apply_after_build @index, context, @model
+        @factory.apply_after_build @index, @context, @model
       end
     end
 
-    def before_save context
+    def before_save
       if @model and not @saved
-        @metadata.apply_before_save @index, context, @model
+        @factory.apply_before_save @index, @context, @model
       end
     end
 
@@ -159,12 +160,13 @@ module ActiveFactory
 
   # keeps collection of created instances of the given model class
   class Container
-    attr_accessor :entries, :name
+    attr_accessor :entries
+    attr_reader :name, :factory
 
-    def initialize name, factory, outer_context
+    def initialize name, factory, context
       @name = name
       @factory = factory
-      @outer_context = outer_context
+      @context = context
       @entries = [].freeze
     end
 
@@ -192,7 +194,7 @@ module ActiveFactory
     end
 
     def build
-      @entries.each { |entry| entry.build @outer_context }
+      @entries.each &:build
       self
     end
 
@@ -201,7 +203,7 @@ module ActiveFactory
     end
 
     def before_save
-      @entries.each { |entry| entry.before_save @outer_context }
+      @entries.each &:before_save
     end
 
     def save
@@ -216,10 +218,6 @@ module ActiveFactory
       @entries.map &:model
     end
 
-    def metadata
-      @factory
-    end
-
     private
 
     def dup_with entries
@@ -231,7 +229,7 @@ module ActiveFactory
     def add_entries count
       size = @entries.size
       added = (size...size+count).
-          map { |i| ContainerEntry.new i, metadata }
+          map { |i| ContainerEntry.new i, factory, @context }
       @entries = (@entries + added).freeze
       added
     end
@@ -244,8 +242,8 @@ module ActiveFactory
       @use_association = use_association
 
       @entries = container.entries
-      @model_class = container.metadata.model_class
-      @prefer_associations = container.metadata.prefer_associations
+      @model_class = container.factory.model_class
+      @prefer_associations = container.factory.prefer_associations
     end
 
     attr_accessor :entries, :model_class
@@ -413,7 +411,7 @@ module ActiveFactory
       @undo_define_methods = nil
     end
 
-    def extend_test_context containers_hash, outer_context
+    def extend_test_context containers_hash, context
       mrg = proc {|args, hash|
         if args.none?
           hash
@@ -434,7 +432,7 @@ module ActiveFactory
               flatten.each_slice(2)
 
       @undo_define_methods =
-          define_methods_with_undo outer_context, method_defs
+          define_methods_with_undo context, method_defs
     end
 
     private
