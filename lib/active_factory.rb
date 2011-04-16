@@ -84,10 +84,10 @@ module ActiveFactory
   end
 
   # defines methods that can be used in a model definition
-  # object - the object under construction
-  # index - index of the object in the factory
+  # model - the model under construction
+  # index - index of the model in the factory
   # context - spec context where the models {} block was evaluated
-  class CreationContext < Struct.new :index, :context, :object
+  class CreationContext < Struct.new :index, :context, :model
     alias i index
   end
 
@@ -100,16 +100,16 @@ module ActiveFactory
       Hash[attrs]
     end
 
-    def apply_after_build index, context, object
+    def apply_after_build index, context, model
       if after_build
-        CreationContext.new(index, context, object).
+        CreationContext.new(index, context, model).
             instance_eval(&after_build)
       end
     end
   end
 
   class ContainerEntry
-    attr_reader :object, :attrs
+    attr_reader :model, :attrs
 
     def initialize index, metadata
       @index = index
@@ -122,17 +122,17 @@ module ActiveFactory
     end
 
     def build context
-      unless @object
-        @object = @metadata.model_class.new
-        @attrs.each_pair { |k,v| @object.send "#{k}=", v }
+      unless @model
+        @model = @metadata.model_class.new
+        @attrs.each_pair { |k,v| @model.send "#{k}=", v }
 
-        @metadata.apply_after_build @index, context, @object
+        @metadata.apply_after_build @index, context, @model
       end
     end
 
     def save
-      if @object and not @saved
-        @object.save!
+      if @model and not @saved
+        @model.save!
         @saved = true
       end
     end
@@ -190,7 +190,7 @@ module ActiveFactory
     end
 
     def objects
-      @entries.map &:object
+      @entries.map &:model
     end
 
     def metadata
@@ -247,7 +247,7 @@ module ActiveFactory
       case ar.macro
         when :has_many, :has_and_belongs_to_many
           assoc_entries = proc { |e, e2|
-            e.object.send(ar.name) << e2.object
+            e.model.send(ar.name) << e2.model
           }
 
           if entries.one? or linker.entries.one?
@@ -268,7 +268,7 @@ module ActiveFactory
 
         when :belongs_to, :has_one
           assoc_entries = proc { |e, e2|
-            e.object.send :"#{ar.name}=", e2.object
+            e.model.send :"#{ar.name}=", e2.model
           }
 
           if linker.entries.one?
@@ -416,17 +416,17 @@ module ActiveFactory
 
     private
 
-    def define_methods_with_undo object, method_defs
-      old_methods = object.methods.map &:to_sym
+    def define_methods_with_undo model, method_defs
+      old_methods = model.methods.map &:to_sym
 
       overridden_methods, new_methods =
           method_defs.
               map(&:first).
               partition { |name| old_methods.include? name.to_sym }
 
-      overridden_methods.map! { |name| [name, object.method(name)] }
+      overridden_methods.map! { |name| [name, model.method(name)] }
 
-      define_method, undef_method = class << object
+      define_method, undef_method = class << model
         [method(:define_method), method(:undef_method)]
       end
 
