@@ -32,4 +32,8 @@ class ActiveFactory::Define
   factory :follower, :class => User do
     prefer_associations :following
   end
+  
+  factory :user_with_parent, :parent => :user, :class => User do
+    password { "overriden" }
+  end
 end

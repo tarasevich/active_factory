@@ -75,11 +75,14 @@ module ActiveFactory
     @@factories = {}
 
     def self.factory name, options = {}, &block
-      model_class = options[:class] || Kernel.const_get(name.to_s.capitalize)
-
+      model_class = options[:class]
+      if parent_sym = options[:parent]
+        parent = @@factories[parent_sym] or raise "undefined parent factory #{parent_sym}"
+      end
+      
       @@factories[name] = FactoryDSL.new.instance_eval {
         instance_eval(&block)
-        Factory.new name, model_class,
+        Factory.new name, parent, model_class,
           @prefer_associations, @attribute_expressions, @after_build, @before_save
       }
     end
@@ -98,8 +101,23 @@ module ActiveFactory
   end
 
   # creates instances of the given model class
-  class Factory < Struct.new :name, :model_class,
+  class Factory < Struct.new :name, :parent, :model_class,
                              :prefer_associations, :attribute_expressions, :after_build, :before_save
+    def initialize name, parent, *overridable
+      @overridable = parent ? parent.merge_overridable(overridable) : overridable
+      super(name, parent, *@overridable)
+      self.attribute_expressions = 
+        parent.attribute_expressions.merge(self.attribute_expressions) if parent
+      
+      name.is_a? Symbol or raise "factory name #{name.inspect} must be symbol"
+      self.model_class ||= Kernel.const_get(name.to_s.capitalize)
+    end
+    
+    def merge_overridable overridable
+      overridable.zip(@overridable).
+      map { |his, my| his or my }
+    end
+    
     def attributes_for index
       context = CreationContext.new(index)
       attrs = attribute_expressions.map { |a, e| [a, context.instance_eval(&e)] }

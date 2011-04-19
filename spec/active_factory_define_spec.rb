@@ -80,5 +80,16 @@ describe ActiveFactory::Define do
       factory = get_factory :follower
       factory.prefer_associations.should == [:following]
     end
+    
+    it "with parent" do
+      factory = get_factory :user_with_parent
+      factory.name.should == :user_with_parent
+      factory.parent.name.should == :user
+      factory.model_class.should == User
+      factory.attributes_for(0).should == {
+        :email => "user0@tut.by",
+        :password => "overriden"
+      }
+    end
   end
 end
