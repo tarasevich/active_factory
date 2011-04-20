@@ -5,6 +5,8 @@
 <b>Feedback will be highly appreciated</b>
 
 * {Google group}[http://groups.google.com/group/active_factory]
+* {Factory Definition Reference}[https://github.com/tarasevich/active_factory/wiki/Factory-Definition-Reference]
+* {Models Clause Reference}[https://github.com/tarasevich/active_factory/wiki/Models-Clause-Reference]
 
 == Introduction
 
