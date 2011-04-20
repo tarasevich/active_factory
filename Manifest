@@ -1,0 +1,17 @@
+MIT-LICENSE
+README.rdoc
+Rakefile
+init.rb
+lib/active_factory.rb
+lib/generators/active_factory/install/USAGE
+lib/generators/active_factory/install/install_generator.rb
+lib/generators/active_factory/install/templates/active_factory.rb
+lib/generators/active_factory/install/templates/define_factories.rb
+lib/hash_struct.rb
+spec/active_factory_define_spec.rb
+spec/active_factory_spec.rb
+spec/active_record_environment_spec.rb
+spec/define_lib_factories.rb
+spec/spec_helper.rb
+spec/support/active_record_environment.rb
+Manifest
