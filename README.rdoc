@@ -37,10 +37,10 @@ These specs require the following configuration:
       username "my_name"
       password "my_password"
 
-      before_save {
-        object.save!
-        context.emulate_sign_in object
-      }
+      before_save do
+        model.save!
+        context.emulate_sign_in model      
+      end
     end
 
     factory :project do
