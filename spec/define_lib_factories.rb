@@ -33,7 +33,7 @@ class ActiveFactory::Define
     prefer_associations :following
   end
   
-  factory :user_with_parent, :parent => :user, :class => User do
+  factory :user_with_parent, :parent => :user do
     password { "overriden" }
   end
 end

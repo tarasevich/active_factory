@@ -110,7 +110,7 @@ module ActiveFactory
         parent.attribute_expressions.merge(self.attribute_expressions) if parent
       
       name.is_a? Symbol or raise "factory name #{name.inspect} must be symbol"
-      self.model_class ||= Kernel.const_get(name.to_s.capitalize)
+      self.model_class ||= (@overridable[0] = Kernel.const_get(name.to_s.capitalize))
     end
     
     def merge_overridable overridable
