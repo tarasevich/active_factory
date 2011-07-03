@@ -1,6 +1,11 @@
 module ActiveFactory
 
-  # should be included in specs
+  # This module should be included in specs that use ActiveFactory
+  #
+  # `rails g active_factory:install` includes it to all controller,
+  # model and request specs. So typically there is no need to include
+  # it explicitly in Rails apps.
+  #
   module API
     extend ActiveSupport::Concern
 
@@ -14,15 +19,19 @@ module ActiveFactory
     end
 
     module ClassMethods
-      def factory_attributes model_name, index = 0
+      def model_attributes model_name, index = 0
         Define.
             factories_hash[model_name].
             attributes_for(index)
       end
+
+      alias factory_attributes model_attributes
     end
 
-    # methods available in specs
     module InstanceMethods
+
+      # Creates models and links them together according to
+      # definition in the given block
       def models &define_graph
         not _active_factory_context_extension or raise "cannot use models twice in an example"
 

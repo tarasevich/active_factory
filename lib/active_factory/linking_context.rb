@@ -11,6 +11,7 @@ module ActiveFactory
 
           define_method name do |*args|
             not args.many? or raise "0 or 1 arguments expected, got: #{args.inspect}"
+            args.none? or args[0].is_a?(Hash) or raise "an argument must be a Hash for a singleton model "
 
             if args.none?
               h[name].singleton
